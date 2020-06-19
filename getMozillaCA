@@ -1,0 +1,158 @@
+#!/bin/bash
+#
+##############################################
+# Copyright (c) 2020 by Manfred Rosenboom    #
+#                                            #
+# This work is licensed under a MIT License. #
+# https://choosealicense.com/licenses/mit/   #
+##############################################
+#
+# The Mozilla CA certificate store can be downloaded as PEM file from
+# the following URL resouce:
+#
+# https://curl.haxx.se/ca/cacert.pem
+#
+# For more details read here:
+#
+# https://curl.haxx.se/docs/caextract.html
+#
+###############################################################################
+#
+SCRIPT_NAME=`basename $0`
+SCRIPT_DIR=`dirname $0`
+VERSION="$SCRIPT_NAME  1  (18-JUN-2020)"
+#
+print_usage() {
+    cat - <<EOT
+
+Usage: ${SCRIPT_NAME} [-h|--help] [-V|--version] [check]
+        Download the Mozilla CA PEM file
+        (URL: https://curl.haxx.se/ca/cacert.pem)
+
+Options:
+  -h|--help    : show this help and exit
+  -V|--version : show version information and exit
+
+  check : show response of a HEAD request to the file cacert.pem and exit
+
+EOT
+}
+#
+###############################################################################
+#
+cwd=`pwd`
+if [ "${SCRIPT_DIR}" = "." ]
+then
+    SCRIPT_DIR=$cwd
+else
+    cd ${SCRIPT_DIR}
+    SCRIPT_DIR=`pwd`
+    cd $cwd
+fi
+cwd=
+unset cwd
+#
+###############################################################################
+#
+cafile="cacert.pem"
+#cafile="cacert-2020-01-01.pem"
+#
+while :
+do
+    option=$1
+    case "$1" in
+        -h | --help)    
+            print_usage
+            exit 0
+            ;;
+        -V | --version)
+            echo $VERSION
+            exit 0
+            ;;
+        -f | --file)
+            shift
+            if [ "$1" = "" ]
+            then
+                echo "${SCRIPT_NAME}: option ${option} : CA file name missing"
+                exit 1
+            fi
+            cafile=$1
+            ;;
+        --)
+            shift 1
+            break
+            ;;
+        --*)
+            echo "${SCRIPT_NAME}: '$1' : unknown option"
+            exit 1
+            ;;
+        -*)
+            echo "${SCRIPT_NAME}: '$1' : unknown option"
+            exit 1
+            ;;
+        *)  break;;
+    esac
+#
+    shift 1
+done
+#
+###############################################################################
+#
+if [ "$1" = "check" ]
+then
+    curl -q --silent --head https://curl.haxx.se/ca/${cafile}
+    exit $?
+fi
+#
+###############################################################################
+#
+# the file moz_cacerts_last_modified contains the last modification date/time
+# of the Mozilla CA PEM file. We check with a HEAD call for a newer version
+# before downloding the file.
+if [ ! -f ${SCRIPT_DIR}/moz_cacerts_last_modified ]
+then
+    # first run, create an empty file moz_cacerts_last_modified
+    # i.e. the Mozilla CA file will be downloaded in any case
+    touch ${SCRIPT_DIR}/moz_cacerts_last_modified
+    chmod 600 ${SCRIPT_DIR}/moz_cacerts_last_modified
+fi
+#
+# get with a HEAD call the last modification date/time of the CA file
+curl -q --silent --head  https://curl.haxx.se/ca/${cafile} | grep -i "last-modified:" | sed -e 's/^.*: //' > ${SCRIPT_DIR}/moz_cacerts_current
+chmod 600 ${SCRIPT_DIR}/moz_cacerts_current
+#
+if [ ! -s ${SCRIPT_DIR}/moz_cacerts_current ]
+then
+    rm -f ${SCRIPT_DIR}/moz_cacerts_current
+    echo "${SCRIPT_NAME}: can't get current last-modified value of Mozilla CA file"
+    exit 1
+fi
+#
+cmp -s ${SCRIPT_DIR}/moz_cacerts_last_modified ${SCRIPT_DIR}/moz_cacerts_current
+if [ $? -eq 0 ]
+then
+    rm -f ${SCRIPT_DIR}/moz_cacerts_current
+    echo "${SCRIPT_NAME}: no newer Mozilla CA file available"
+    echo "${SCRIPT_NAME}: last modification:"
+    cat ${SCRIPT_DIR}/moz_cacerts_last_modified
+    exit 0
+fi
+#
+###############################################################################
+#
+echo "${SCRIPT_NAME}: download current version of file cacert.pem"
+wget https://curl.haxx.se/ca/${cafile} -O cacert.pem || exit 1
+chmod 600 cacert.pem || exit 1
+#
+# save the last modification date/time of the CA file in the server
+mv ${SCRIPT_DIR}/moz_cacerts_last_modified ${SCRIPT_DIR}/moz_cacerts_last_modified.bak || exit 1
+mv ${SCRIPT_DIR}/moz_cacerts_current ${SCRIPT_DIR}/moz_cacerts_last_modified || exit 1
+rm ${SCRIPT_DIR}/moz_cacerts_last_modified.bak || exit 1
+#
+echo "${SCRIPT_NAME}: last modification:"
+cat ${SCRIPT_DIR}/moz_cacerts_last_modified | sed -e 's/last-modified: //'
+#
+###############################################################################
+#
+exit 0
+

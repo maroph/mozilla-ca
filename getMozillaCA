@@ -142,7 +142,7 @@ fi
 #
 echo "${SCRIPT_NAME}: download current version of file cacert.pem"
 wget https://curl.haxx.se/ca/${cafile} -O cacert.pem || exit 1
-chmod 600 cacert.pem || exit 1
+chmod 644 cacert.pem || exit 1
 #
 # save the last modification date/time of the CA file in the server
 mv ${SCRIPT_DIR}/moz_cacerts_last_modified ${SCRIPT_DIR}/moz_cacerts_last_modified.bak || exit 1

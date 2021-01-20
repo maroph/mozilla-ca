@@ -154,7 +154,7 @@ cat ${SCRIPT_DIR}/moz_cacerts_last_modified | sed -e 's/last-modified: //'
 #
 ###############################################################################
 #
-newName=$(date --date="$(cat ${SCRIPT_DIR}/moz_cacerts_last_modified)" +"cacerts-%Y-%m-%d.pem")
+newName=$(date --date="$(cat ${SCRIPT_DIR}/moz_cacerts_last_modified)" +"cacert-%Y-%m-%d.pem")
 #
 if [ "${newName}" = "" ]
 then

@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 ##############################################
-# Copyright (c) 2020 by Manfred Rosenboom    #
+# Copyright (c) 2021 by Manfred Rosenboom    #
 #                                            #
 # This work is licensed under a MIT License. #
 # https://choosealicense.com/licenses/mit/   #
@@ -10,17 +10,19 @@
 # The Mozilla CA certificate store can be downloaded as PEM file from
 # the following URL resouce:
 #
-# https://curl.haxx.se/ca/cacert.pem
+# old: https://curl.haxx.se/ca/cacert.pem
+# https://curl.se/ca/cacert.pem
 #
 # For more details read here:
 #
-# https://curl.haxx.se/docs/caextract.html
+# old: https://curl.haxx.se/docs/caextract.html
+# https://curl.se/docs/caextract.html
 #
 ###############################################################################
 #
 SCRIPT_NAME=`basename $0`
 SCRIPT_DIR=`dirname $0`
-VERSION="$SCRIPT_NAME  2  (26-JUN-2020)"
+VERSION="$SCRIPT_NAME  3  (02-FEB-2021)"
 #
 print_usage() {
     cat - <<EOT
@@ -54,8 +56,9 @@ unset cwd
 #
 ###############################################################################
 #
+baseURL="https://curl.se/ca"
 cafile="cacert.pem"
-#cafile="cacert-2020-12-08.pem"
+#cafile="cacert-2021-01-19.pem"
 #
 while :
 do
@@ -100,7 +103,7 @@ done
 #
 if [ "$1" = "check" ]
 then
-    curl -q --silent --head https://curl.haxx.se/ca/${cafile}
+    curl -q --silent --head ${baseURL}/${cafile}
     exit $?
 fi
 #
@@ -118,7 +121,7 @@ then
 fi
 #
 # get with a HEAD call the last modification date/time of the CA file
-curl -q --silent --head  https://curl.haxx.se/ca/${cafile} | grep -i "last-modified:" | sed -e 's/^.*: //' > ${SCRIPT_DIR}/moz_cacerts_current
+curl -q --silent --head  ${baseURL}/${cafile} | grep -i "last-modified:" | sed -e 's/^.*: //' > ${SCRIPT_DIR}/moz_cacerts_current
 chmod 600 ${SCRIPT_DIR}/moz_cacerts_current
 #
 if [ ! -s ${SCRIPT_DIR}/moz_cacerts_current ]
@@ -141,7 +144,7 @@ fi
 ###############################################################################
 #
 echo "${SCRIPT_NAME}: download current version of file cacert.pem"
-wget https://curl.haxx.se/ca/${cafile} -O cacert.pem || exit 1
+wget ${baseURL}/${cafile} -O cacert.pem || exit 1
 chmod 644 cacert.pem || exit 1
 #
 # save the last modification date/time of the CA file in the server

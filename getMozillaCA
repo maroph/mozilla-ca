@@ -22,18 +22,23 @@
 #
 SCRIPT_NAME=`basename $0`
 SCRIPT_DIR=`dirname $0`
-VERSION="$SCRIPT_NAME  3  (02-FEB-2021)"
+VERSION="$SCRIPT_NAME  4  (13-APR-2021)"
+#
+baseURL="https://curl.se/ca"
+cafile="cacert.pem"
 #
 print_usage() {
     cat - <<EOT
 
 Usage: ${SCRIPT_NAME} [-h|--help] [-V|--version] [check]
-        Download the Mozilla CA PEM file
-        (URL: https://curl.haxx.se/ca/cacert.pem)
+       Download the Mozilla CA PEM file
+       (URL: ${baseURL}/${cafile})
 
 Options:
-  -h|--help    : show this help and exit
-  -V|--version : show version information and exit
+  -h|--help           : show this help and exit
+  -V|--version        : show version information and exit
+  -f|--file <ca file> : set ca file name to download (default: ${cafile})
+                        (file name format: cacert-YYYY-MM-DD.pem)
 
   check : show response of a HEAD request to the file cacert.pem and exit
 
@@ -55,10 +60,6 @@ cwd=
 unset cwd
 #
 ###############################################################################
-#
-baseURL="https://curl.se/ca"
-cafile="cacert.pem"
-#cafile="cacert-2021-01-19.pem"
 #
 while :
 do

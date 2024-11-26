@@ -1,0 +1,9 @@
+.* export-ignore
+#
+* text=auto
+#
+countCertsInPEM text eol=lf
+getMozillaCA text eol=lf
+#
+*.pem text
+*.sha256 text

@@ -1,0 +1,95 @@
+#!/bin/bash
+#
+##############################################
+# Copyright (c) 2024 by Manfred Rosenboom    #
+#                                            #
+# This work is licensed under a MIT License. #
+# https://choosealicense.com/licenses/mit/   #
+##############################################
+#
+###############################################################################
+#
+declare -r SCRIPT_NAME=$(basename $0)
+declare -r VERSION="0.0.1"
+declare -r VERSION_DATE="26-NOV-2024"
+declare -r VERSION_STRING="${SCRIPT_NAME}  ${VERSION}  (${VERSION_DATE})"
+#
+SCRIPT_DIR=$(dirname $0)
+#
+cwd=$(pwd)
+if [ "${SCRIPT_DIR}" = "." ]
+then
+    SCRIPT_DIR=${cwd}
+else
+    cd ${SCRIPT_DIR} || exit 1 
+    SCRIPT_DIR=$(pwd)
+    cd ${cwd} || exit 1
+fi
+cwd=
+unset cwd
+#
+declare -r SCRIPT_DIR
+#
+###############################################################################
+#
+print_usage() {
+    cat <<EOT
+
+Usage: ${SCRIPT_NAME} [<options>] <PEM file with certificates>
+       Count the number of certificates in the given PEM file
+
+    Options:
+    -h|--help    : show this help text and exit
+    -V|--version : show version information and exit
+
+EOT
+}
+#
+###############################################################################
+#
+while :
+do
+    option=$1
+    case "$1" in
+        -h | --help)
+            print_usage
+            exit 0
+            ;;
+        -V | --version)
+            echo ${VERSION_STRING}
+            exit 0
+            ;;
+        --*)
+            echo "${SCRIPT_NAME}: '$1' : unknown option"
+            exit 1
+            ;;
+        -*)
+            echo "${SCRIPT_NAME}: '$1' : unknown option"
+            exit 1
+            ;;
+        *)  break;;
+    esac
+#
+    shift 1
+done
+#
+###############################################################################
+#
+if [ "$1" == "" ]
+then
+    echo "${SCRIPT_NAME}: PEM file name missing"
+    exit 1
+fi
+#
+if [ ! -r $1 ]
+then
+    echo "${SCRIPT_NAME}: can't read PEM file $1"
+    exit 1
+fi
+pemFile=$1
+#
+###############################################################################
+#
+cat ${pemFile} | grep --count -- '-----BEGIN CERTIFICATE-----'
+exit $?
+
